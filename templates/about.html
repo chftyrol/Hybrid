@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/common.css">
+    <link rel="stylesheet" type="text/css" media="only screen and (max-width: 800px)" href="/static/common-handheld.css">
+    <style>article > p { text-align: justify; }</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta charset="utf-8">
+    <title>About Hybrid</title>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <h1>About <a href="/" class="title">Hybrid</a></h1>
+      <nav>
+        {% for item in navigation %}
+            <a class="nav" href="{{ item.href }}">❬ {{ item.caption }} ❭</a>
+        {% endfor %}
+      </nav>
+    </header>
+    <article style="margin-top: 8%;">
+      <h2>What's this?</h2>
+      <p>
+        This is a web application used to control Hybrid, chftyrol's home server. The server runs on a Raspberry Pi and runs many services. 
+        For performance reasons having many services running at once is not auspicable. The main purpose of this application is to be able to switch on and off services
+        in a simple and accessible way.
+      </p>
+      <h2>What's with all the funny names?</h2>
+      <p>
+        Well, it turns out that chftyrol is one heck of a Battlestar Galactica fan. He has a weird thing for giving names to devices he uses frequently.
+        This is particularly true with electronic devices, especially for those he can make behave <i>exactly</i> as he wishes.
+        These machines are given names of notable humanoid cylons (i.e. "skinjobs"). 
+        The Hybrid has a very special role amongst cylons, and this home server is particularly suited to bear that name.
+      </p>
+      <p>
+        The moral of this story is: if you haven't already, watch Battlestar Galactica! Don't be frightened by the sci-fi name. Watch it.
+        And then let's talk about it, if you'd like.
+      </p>
+      <h2>Licensing</h2>
+      <p>
+        This web application is free software. All the code run by the client (HTML, CSS, Javascript) as well as the code run by the server are released under the GNU Affero General Public License (AGPL). 
+      </p>
+      <p>
+        The full source code for the client and server can be found at <a href="">this Github repository</a>, together with a copy of the license.
+        The Javascript code being run has been minified (or as RMS would say, reduced into <i>obfuscript</i>) to reduce bandwith usage. This clearly makes the code unreadable. 
+        In the repository, though, you will find the unaltered version, which is extensively commented.
+      </p>
+      <p>
+        The font used in this web application is Iosevka Term Slab. <a href="https://github.com/be5invis/Iosevka">Iosevka</a> is a font family generated from source and released under the SIL Open Font License, version 1.1. 
+      </p>
+      <p>
+        <a href="/iosevka_notice">Here</a> you can find the licensing information for Iosevka.
+      </p>
+    </article>
+  </div>
+</body>
+</html>

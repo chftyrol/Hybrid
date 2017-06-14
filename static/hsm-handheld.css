@@ -1,0 +1,41 @@
+div.servman {
+  margin-top: 40px;
+  padding: 0px 5px 0px 5px;
+}
+div.servitem {
+  display: flex;
+  flex-direction: row;
+}
+div.servitem > div {
+  /*flex: 1 1 auto;*/
+}
+div.lbox {
+  margin-right: 10%;
+}
+div.rbox {
+  display: flex;
+  flex-direction: column;
+}
+div.buttoncontainer {
+  text-align: center;
+}
+div.lbox > p {
+  text-align: justify;
+}
+a.icon {
+  text-decoration: none;
+  font-size: 35px;
+  margin: 13px;
+}
+p.status {
+  font-weight: 900;
+}
+p.status.active {
+  color: #4dea89;
+}
+p.status.inactive,p.status.disabled{
+  color: #ea894d;
+}
+p.status.enabled {
+  color: #4daeeb;
+}

@@ -1,0 +1,9 @@
+[Unit]
+Description=Send Hybrid's logs
+
+[Timer]
+OnCalendar=*-*-* 01:12:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

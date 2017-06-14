@@ -1,0 +1,177 @@
+#!/bin/bash
+
+####################################
+##### _BEGIN_ CONFIG VARIABLES #####
+####################################
+
+SERVER_GROUP="hybrid"
+SERVER_USER="srv"
+TOR_USER="debian-tor"
+TOR_GROUP="debian-tor"
+KODI_USER="osmc"
+TOR_SERVICE_CONFIG="HiddenServiceDir /var/lib/tor/hybrid/\n\
+        HiddenServicePort 22 127.0.0.1:22 \n\
+        HiddenServicePort 80 127.0.0.1:27172 \n\
+        HiddenServicePort 8080 127.0.0.1:8080 \n\
+        HiddenServicePort 8081 127.0.0.1:8081 \n\
+        HiddenServicePort 9091 127.0.0.1:9091 \n"
+
+##################################
+##### _END_ CONFIG VARIABLES #####
+##################################
+
+#### Only touch these two if you know what you're doing. ####
+THIS_DIR=$(dirname "$0")
+SERVER_FILES_DIR=$(dirname "${THIS_DIR}")
+
+echoindent()
+{
+  echo -e "    $1"
+}
+
+# Print a h4cky banner
+echo \
+  '
+   ################################## 
+                       __
+    |_|  |_ ._o _|    (_  _ ._  _ ._
+    | |\/|_)| |(_|    __)(/_|\/(/_|
+       /           __
+       
+               Installer
+
+   ################################## 
+  '
+
+# Script must be run as root
+if (( ${EUID} ))
+then
+  echoindent "This install script must be run as root!"
+  exit
+fi
+
+# if SERVER_GROUP does not exist, then create it.
+if ! [ $(cat <(cut -f1 -d':' /etc/group) <(echo ${SERVER_GROUP}) | sort | uniq -d) ]
+then
+  groupadd "${SERVER_GROUP}"
+  echoindent "Created group ${SERVER_GROUP}."
+fi
+
+# if SERVER_USER does not exist, then create it and add it to SERVER_GROUP
+if ! [ $(cat <(cut -f1 -d':' /etc/passwd) <(echo ${SERVER_USER}) | sort | uniq -d) ]
+then
+  make_home=""
+  if [[ ! -e /home/${SERVER_USER} ]]
+  then
+    make_home="-m"
+  fi
+  useradd ${make_home} "${SERVER_USER}"
+  usermod -a -G "${SERVER_GROUP}" ${SERVER_USER}
+  loginctl enable-linger ${SERVER_USER}
+  echoindent "Created user ${SERVER_USER} and added them to group ${SERVER_GROUP}."
+# if SERVER_USER exists but is not in SERVER_GROUP add it there
+elif ! [ $(cat <(groups ${SERVER_USER}) <(echo ${SERVER_GROUP}) | sort | uniq -d) ]
+then
+  usermod -a -G "${SERVER_GROUP}" ${SERVER_USER}
+  echoindent "Added user ${SERVER_USER} to group ${SERVER_GROUP}."
+fi
+
+# Now we know there is the user SERVER_USER with /home/${SERVER_USER}
+
+# Install server files
+echoindent "Copying server files to /home/${SERVER_USER}/"
+cp -r "${SERVER_FILES_DIR}" "/home/${SERVER_USER}/" && \
+chown -R "${SERVER_USER}":"${SERVER_GROUP}" "/home/${SERVER_USER}/$(basename ${SERVER_FILES_DIR})" 
+
+################################################
+##### _BEGIN_ EDIT THIS PART TO YOUR NEEDS #####
+################################################
+
+## Especially, use this space to get your system services ready to be managed by Hybrid Server ##
+
+# Copy user systemd units to /home/srv/.config/systemd/user
+echoindent "Copying user ${SERVER_USER} systemd units to /home/${SERVER_USER}/.config/"
+cp -r "${THIS_DIR}/systemd" "/home/${SERVER_USER}/.config/" && \
+chown -R "${SERVER_USER}":"${SERVER_GROUP}" "/home/${SERVER_USER}/.config/systemd" 
+
+# Copy kodi-manager-daemon to /home/osmc/kodi-manager-daemon
+echoindent "Copying kodi-manager-daemon files to /home/${KODI_USER}/kodi-manager-daemon"
+
+mkdir -p "/home/${KODI_USER}/kodi-manager-daemon/"
+cp "${THIS_DIR}/kodi-manager-daemon.sh" "/home/${KODI_USER}/kodi-manager-daemon/"
+chown -R "${KODI_USER}:${SERVER_GROUP}" "/home/${KODI_USER}/kodi-manager-daemon/"
+
+# Copy kodi-manager-daemon.service to /lib/systemd/system/
+echoindent "Installing kodi-manager-daemon service."
+install -D -m644 "${THIS_DIR}/kodi-manager-daemon.service" "/lib/systemd/system"
+
+# Copy kodi-remote.sh to /home/${SERVER_USER}
+echoindent "Installing kodi-remote script."
+install -o "${SERVER_USER}" -g "${SERVER_GROUP}" -D -m754 "${THIS_DIR}/kodi-remote.sh" "/home/${SERVER_USER}"
+
+# Let systemd know about the new units
+echoindent "Reloading the systemd manager configuration."
+systemctl daemon-reload
+
+# Start and enable kodi-manager-daemon.service
+echoindent "Starting and enabling kodi-manager-daemon.service for user ${SERVER_USER}."
+systemctl start kodi-manager-daemon.service && systemctl enable kodi-manager-daemon.service
+
+##############################################
+##### _END_ EDIT THIS PART TO YOUR NEEDS #####
+##############################################
+
+# Insert entry for hybrid in torrc if it's not there yet
+echoindent "Setting up tor hidden service."
+if ! [[ $(grep "hybrid" /etc/tor/torrc) ]]
+then
+  cp /etc/tor/torrc /etc/tor/torrc.old
+  sed -i \
+      "\
+      /HiddenServiceDir \/var\/lib\/tor\/other_hidden_service\//i \
+      ${TOR_SERVICE_CONFIG}
+      "\
+    /etc/tor/torrc
+fi
+mkdir -p "/var/lib/tor/hybrid/"
+chown -R ${TOR_USER}:${TOR_GROUP} "/var/lib/tor/hybrid/"
+install -o ${TOR_USER} -g ${TOR_GROUP} -D -m 600 "${THIS_DIR}/tor/hybrid/hostname" "/var/lib/tor/hybrid/"
+install -o ${TOR_USER} -g ${TOR_GROUP} -D -m 600 "${THIS_DIR}/tor/hybrid/private_key" "/var/lib/tor/hybrid/"
+
+# Starting tor
+echoindent "Starting and enabling tor."
+systemctl start tor
+systemctl enable tor
+
+# Create logs directory
+echoindent "Creating logs directory."
+mkdir -p "/var/log/hybrid"
+chown -R ${SERVER_USER}:${SERVER_GROUP} "/var/log/hybrid"
+chmod -R 771 "/var/log/hybrid"
+
+# Set up auto log sender
+echoindent "Setting up auto log sender."
+
+install -m 711 "${THIS_DIR}/send-logs.sh" "/usr/bin/send-logs.sh"
+install -m 644 "${THIS_DIR}/hybrid-send-logs.service" "/lib/systemd/system/hybrid-send-logs.service"
+install -m 644 "${THIS_DIR}/hybrid-send-logs.timer" "/lib/systemd/system/hybrid-send-logs.timer"
+systemctl daemon-reload
+systemctl start hybrid-send-logs.timer
+systemctl enable hybrid-send-logs.timer
+
+# Install after-sickrage-postproc
+echoindent "Installing after-sickrage-postproc."
+install -m 711 "${THIS_DIR}/after-sickrage-postproc" "/usr/bin/after-sickrage-postproc"
+
+# Remove source files
+echoindent "Cleaning up."
+rm -rf $(dirname ${THIS_DIR})
+rm -f "/tmp/hybrid.tar.gz"
+
+
+# Print a comforting message
+echoindent "\e[32mEverything is now in place. Enjoy your new hybrid.\e[39m"
+echo \
+  '
+   ################################## 
+  '

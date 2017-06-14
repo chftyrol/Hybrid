@@ -1,0 +1,13 @@
+[Unit]
+Description=SiCKRAGE Video Library Manager
+After=network.target
+
+[Service]
+Type=simple
+Environment="LC_ALL=C.UTF-8"
+Environment="LANG=C.UTF-8"
+ExecStart=/usr/bin/python2 /opt/SiCKRAGE/SiCKRAGE.py --nolaunch --pidfile=/run/sickrage/sickrage.pid
+ExecReload=/bin/kill -s HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

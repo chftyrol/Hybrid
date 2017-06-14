@@ -1,0 +1,12 @@
+article.utterance:after {
+  position: absolute;
+  bottom: 0;
+  height: 100%;
+  width: 80%;
+  content: "";
+  background: linear-gradient(to top,
+     rgba(116, 89, 64, 1) 10%, 
+     rgba(116, 89, 64, 0) 80%
+  );
+  pointer-events: none; /* so the text is still selectable */
+}

@@ -1,0 +1,100 @@
+#!/bin/bash
+SERVER_GROUP="hybrid"
+SERVER_USER="srv"
+KODI_USER="osmc"
+THIS_DIR=$(dirname "$0")
+
+echoindent()
+{
+  echo -e "    $1"
+}
+
+# Print a h4cky banner
+echo \
+  '
+   ################################## 
+                       __
+    |_|  |_ ._o _|    (_  _ ._  _ ._
+    | |\/|_)| |(_|    __)(/_|\/(/_|
+       /           __
+       
+              Uninstaller
+
+   ################################## 
+  '
+
+# Script must be run as root
+if (( ${EUID} ))
+then
+  echoindent "This install script must be run as root!"
+  exit
+fi
+
+
+# Remove user systemd units from /home/srv/.config/systemd/user
+echoindent "Deleting user ${SERVER_USER}'s systemd units from /home/${SERVER_USER}/.config/"
+rm -f "/home/${SERVER_USER}/.config/systemd/sickrage.service" "/home/${SERVER_USER}/.config/systemd/hybrid.service" "/home/${SERVER_USER}/.config/systemd/transmission.service" 
+
+# Remove server files from /home/srv/hybrid
+echoindent "Deleting server files from /home/${SERVER_USER}/"
+rm -rf "/home/${SERVER_USER}/hybrid"
+
+# Remove kodi-remote from /home/srv/
+echoindent "Deleting kodi-remote script from /home/${SERVER_USER}/"
+rm "/home/${SERVER_USER}/kodi-remote.sh"
+
+# Delete kodi-manager-daemon from /home/osmc/kodi-manager-daemon
+echoindent "Deleting kodi-manager-daemon files from /home/${KODI_USER}/kodi-manager-daemon"
+rm -rf "/home/${KODI_USER}/kodi-manager-daemon/"
+
+# Removing kodi-manager-daemon.service from /lib/systemd/system/
+echoindent "Removing kodi-manager-daemon service."
+systemctl stop kodi-manager-daemon
+rm "/lib/systemd/system/kodi-manager-daemon.service"
+
+# Stopping and disabling tor
+echoindent "Stopping and disabling tor."
+systemctl stop tor
+systemctl disable tor
+# Let systemd know about the new units
+echoindent "Reloading the systemd manager configuration."
+systemctl daemon-reload
+
+# Remove hiddent service
+echoindent "Removing tor hidden service."
+if [[ -e "/var/lib/tor/hybrid" ]]
+then
+  rm -rf "/var/lib/tor/hybrid"
+fi
+
+# Remove entry for hybrid in torrc 
+echoindent "Restoring old torrc file."
+if [[ -e "/etc/tor/torrc.old" ]]
+then
+  rm /etc/tor/torrc
+  mv /etc/tor/torrc.old /etc/tor/torrc
+fi
+
+# Remove log dir
+echoindent "Removing log directory."
+rm -rf /var/log/hybrid
+
+# Remove auto send logs
+echoindent "Removing auto send logs"
+systemctl stop hybrid-send-logs.timer
+systemctl disable hybrid-send-logs.timer
+rm -f "/usr/bin/send-logs.sh"
+rm -f "/lib/systemd/system/hybrid-send-logs.service"
+rm -f "/lib/systemd/system/hybrid-send-logs.timer"
+systemctl daemon-reload
+
+# Uninstalling after-sickrage-postproc
+echoindent "Removing after-sickrage-postproc."
+rm -f "/usr/bin/after-sickrage-postproc"
+
+# Print a comforting message
+echoindent "\e[32mHybdrid server was successfully removed.\e[39m"
+echo \
+  '
+   ################################## 
+  '

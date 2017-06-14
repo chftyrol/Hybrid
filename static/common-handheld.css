@@ -1,0 +1,34 @@
+div.wrapper {
+  width: 80%;
+  margin: 0 auto;
+  font-size: 13px;
+}
+nav {
+  font-size: 15px;
+  word-spacing: -0.1em;
+  text-align: center;
+}
+hr {
+  background-color: #302921;
+  border: none;
+  height: 2px;
+}
+h1 {
+  color: #302921;
+  font-size: 35px;
+  text-align: center;
+  border: 3px solid #302921;
+  margin-bottom: 3%;
+}
+a.nav {
+  text-decoration: none;
+}
+a:link {
+  font-weight: normal;
+}
+a:visited {
+  font-weight: normal;
+}
+a:active {
+  font-weight: bold;
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=HTTP Server
+After=network.target 
+
+[Service]
+Type=simple
+Environment="LC_ALL=C.UTF-8"
+Environment="LANG=C.UTF-8"
+ExecStart=/usr/bin/python3 /home/srv/hybrid/hybrid.py
+
+[Install]
+WantedBy=multi-user.target

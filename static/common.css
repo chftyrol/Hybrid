@@ -1,0 +1,52 @@
+@font-face {
+  font-family: Iosevka;
+  src: url(/static/iosevka-term-slab-regular.ttf);
+}
+*{
+  background-color: #745940;
+  font-family: Iosevka, monospace;
+  color: #fff2e7;
+}
+div.wrapper {
+  width: 50%;
+  margin: 0 auto;
+  font-size: 15px;
+}
+nav {
+  font-size: 19px;
+  text-align: center;
+}
+hr {
+  background-color: #302921;
+  border: none;
+  height: 2px;
+}
+h1 {
+  color: #302921;
+  font-size: 45px;
+  text-align: center;
+  border: 3px solid #302921;
+  margin-bottom: 3%;
+}
+a:link {
+  font-weight: normal;
+}
+a:visited {
+  font-weight: normal;
+}
+a:hover {
+  font-weight: bold;
+}
+a:active {
+  font-weight: bold;
+}
+a.nav {
+  text-decoration: none;
+}
+a.title {
+  text-decoration: none;
+}
+a.title:link, a.title:visited, a.title:hover, a.title:active {
+  font-weight: bold;
+  color: #302921;
+}
