@@ -1,0 +1,3 @@
+[submodule "hybrid-config"]
+	path = hybrid-config
+	url = git@github.com:chftyrol/hybrid-config.git
