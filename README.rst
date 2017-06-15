@@ -76,7 +76,7 @@ To get some credentials you need to run the Python script provided with Hybrid, 
 A 'Register account' page is absent by choice.
 
 If you want Hybrid  to actually manage something you will have to configure it to do so. This is done by editing the file ``services.conf`` to your needs.
-For more info see :ref:`serviceconfsyntax`.
+For more info see the relative `docs page <https://chftyrol.github.io/Hybrid/service.html>`_.
 
 The one provided is just the configuration I use and it is an example. To make it work, the specifications in ``services.conf`` must be real.
 
